@@ -1,5 +1,8 @@
-mod ws;
-mod db_layer;
+mod routes;
+mod model;
+mod controller;
+
+use routes::product::{ get_product, query_product, create_product};
  
 use mysql::*;
 use actix_web::*;
@@ -20,9 +23,9 @@ async fn main() {
     let server = match HttpServer::new(move || {
         App::new()
             .app_data(shared_data.clone())
-            .service(ws::query_product)
-            .service(ws::get_product)
-            .service(ws::create_product)
+            .service(get_product)
+            .service(query_product)
+            .service(create_product)
     }).bind("127.0.0.1:8080") {
         Ok(s) => s,
         Err(e) => {

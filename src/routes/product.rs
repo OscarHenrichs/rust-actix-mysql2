@@ -1,4 +1,8 @@
-use super::db_layer::*;
+use crate::controller::product_controller::find_product_by_id;
+use crate::controller::product_controller::insert_product;
+use crate::controller::product_controller::find_product_in_price_range;
+use crate::model::product::Product;
+
 use actix_web::*;
 use mysql::*;
 use serde::Deserialize;
