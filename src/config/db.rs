@@ -7,6 +7,7 @@ use r2d2::Pool;
 use r2d2_mysql::MysqlConnectionManager;
 // use std::env;
 pub struct AppState {
+    pub app_name: String,
     pub pool: Arc<Pool<MysqlConnectionManager>>,
 }
 

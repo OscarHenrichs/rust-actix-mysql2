@@ -2,9 +2,10 @@ use crate::controller::product_controller::find_product_by_id;
 use crate::controller::product_controller::insert_product;
 use crate::controller::product_controller::find_product_in_price_range;
 use crate::models::product::Product;
-
+use crate::config::db::AppState;
+use r2d2::Pool;
 use actix_web::*;
-use mysql::*;
+use r2d2_mysql::*;
 use serde::Deserialize;
 
 
@@ -15,7 +16,7 @@ pub struct ProductQuery {
 }
  
 #[get("/product")]
-pub async fn query_product(query: web::Query<ProductQuery>, data: web::Data<Pool>) -> HttpResponse {
+pub async fn query_product(query: web::Query<ProductQuery>, data: web::Data<AppState>) -> HttpResponse {
     match data
         .get_conn()
         .and_then(|mut conn| find_product_in_price_range(&mut conn, query.price_from, query.price_to))
@@ -26,7 +27,7 @@ pub async fn query_product(query: web::Query<ProductQuery>, data: web::Data<Pool
 }
 
 #[get("/product/{id}")]
-async fn get_product(path: web::Path<u64>, data: web::Data<Pool>) -> HttpResponse {
+async fn get_product(path: web::Path<u64>, data: web::Data<AppState>) -> HttpResponse {
     let product_id = *path;
  
     match data
@@ -43,7 +44,7 @@ async fn get_product(path: web::Path<u64>, data: web::Data<Pool>) -> HttpRespons
 
 
 #[post("/product")]
-async fn create_product(product_json: web::Json<Product>, data: web::Data<Pool>) -> HttpResponse {
+async fn create_product(product_json: web::Json<Product>, data: web::Data<AppState>) -> HttpResponse {
     let product = product_json.into_inner();
  
     match data

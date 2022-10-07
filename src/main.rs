@@ -42,6 +42,7 @@ async fn main() {
     // let pool = config::db::config_db(&db_url);
 
     let app_data = web::Data::new(config::db::AppState {
+        app_name: String::from("turreta"),
         pool: config::db::get_pool(&db_url).unwrap(),
     });
  
