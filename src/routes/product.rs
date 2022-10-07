@@ -21,18 +21,18 @@ pub async fn query_product(query: web::Query<ProductQuery>, data: web::Data<AppS
     let app_name = &data.app_name; // <- get app_name
     let pool = &data.pool;
     let pool = pool.clone();
-    // let mut conn = pool.get().map_err(|err| {
-    //     println!(
-    //         "get connection from pool error in line:{} ! error: {:?}",
-    //         line!(),
-    //         err
-    //     )
-    // }).unwrap();
+    let mut conn = pool.get().map_err(|err| {
+        println!(
+            "get connection from pool error in line:{} ! error: {:?}",
+            line!(),
+            err
+        )
+    }).unwrap();
  
-    // let param = info.into_inner();
-    // let qr = conn.exec_iter("select person_id, person_name from person where person_id = ?", (param, )).unwrap();
+    let param = info.into_inner();
+    let qr = conn.exec_iter("select person_id, person_name from person where person_id = ?", (param, )).unwrap();
  
-    // let mut rec: Option<(i32, String)> = None;
+    let mut rec: Option<(i32, String)> = None;
  
     // for row in qr {
     //     rec = Some(from_row(row.unwrap()));
@@ -47,7 +47,7 @@ pub async fn query_product(query: web::Query<ProductQuery>, data: web::Data<AppS
             line!(),
             err
         )
-    }).and_then(|mut conn: r2d2::PooledConnection<r2d2_mysql::MysqlConnectionManager>| Ok(find_product_in_price_range(&mut conn, query.price_from, query.price_to)))
+    }).and_then(|mut conn | find_product_in_price_range(&mut conn, query.price_from, query.price_to))
     {
         Ok(result_list) => HttpResponse::Ok().json(result_list),
         Err(_) => HttpResponse::InternalServerError().finish(),
