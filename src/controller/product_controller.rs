@@ -2,6 +2,7 @@ use crate::models::product::Product;
 use r2d2::{PooledConnection, ManageConnection};
 use r2d2_mysql::mysql::{QueryResult, from_row, PooledConn};
 use r2d2_mysql::mysql::prelude::*;
+use r2d2_mysql::mysql::params;
 
 // pub fn insert_product(
 //     conn: &mut PooledConn, 
@@ -20,7 +21,7 @@ use r2d2_mysql::mysql::prelude::*;
 pub fn find_product_in_price_range(
     conn: &mut r2d2::PooledConnection<r2d2_mysql::MysqlConnectionManager>,
     price_from: f32,
-    price_to: f32) -> std::result::Result<Vec<Product>, mysql::error::Error> {
+    price_to: f32) -> std::result::Result<Vec<Product>, r2d2_mysql::mysql::error::Error> {
     conn.exec_map(
         "select product_id, product_code, name from PRODUCT where price>=:price_from and price <=:price_to",
         params! {
