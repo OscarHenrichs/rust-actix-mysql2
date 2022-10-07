@@ -1,11 +1,11 @@
-use crate::controller::product_controller::find_product_by_id;
-use crate::controller::product_controller::insert_product;
+// use crate::controller::product_controller::find_product_by_id;
+// use crate::controller::product_controller::insert_product;
 use crate::controller::product_controller::find_product_in_price_range;
 use crate::models::product::Product;
 use crate::config::db::AppState;
 use actix_web::*;
 use r2d2_mysql::mysql::prelude::Queryable;
-use r2d2_mysql::mysql::{QueryResult, from_row};
+use r2d2_mysql::mysql::{QueryResult, from_row, PooledConn};
 use serde::Deserialize;
 
 
@@ -16,18 +16,18 @@ pub struct ProductQuery {
 }
  
 #[get("/product")]
-pub async fn query_product(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responder {
+pub async fn query_product(query: web::Query<ProductQuery>, data: web::Data<AppState>) -> HttpResponse {
 
     let app_name = &data.app_name; // <- get app_name
     let pool = &data.pool;
     let pool = pool.clone();
-    let mut conn = pool.get().map_err(|err| {
-        println!(
-            "get connection from pool error in line:{} ! error: {:?}",
-            line!(),
-            err
-        )
-    }).unwrap();
+    // let mut conn = pool.get().map_err(|err| {
+    //     println!(
+    //         "get connection from pool error in line:{} ! error: {:?}",
+    //         line!(),
+    //         err
+    //     )
+    // }).unwrap();
  
     // let param = info.into_inner();
     // let qr = conn.exec_iter("select person_id, person_name from person where person_id = ?", (param, )).unwrap();
@@ -41,9 +41,13 @@ pub async fn query_product(info: web::Path<i32>, data: web::Data<AppState>) -> i
  
     // let unwrap_rec = rec.unwrap();
     // format!("Hello {} ({})! \n from {}",  unwrap_rec.1, unwrap_rec.0, app_name)
-    match data
-        .get()
-        .and_then(|mut conn| find_product_in_price_range(&mut conn, query.price_from, query.price_to))
+    match pool.get().map_err(|err| {
+        println!(
+            "get connection from pool error in line:{} ! error: {:?}",
+            line!(),
+            err
+        )
+    }).and_then(|mut conn: r2d2::PooledConnection<r2d2_mysql::MysqlConnectionManager>| find_product_in_price_range(&mut conn, query.price_from, query.price_to))
     {
         Ok(result_list) => HttpResponse::Ok().json(result_list),
         Err(_) => HttpResponse::InternalServerError().finish(),
