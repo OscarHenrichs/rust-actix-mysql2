@@ -23,13 +23,15 @@ mod controller;
 // mod utils;
 mod config;
 
-use routes::product::{ get_product, query_product, create_product};
+use routes::product::{ 
+    //get_product, 
+    query_product
+    //,create_product
+};
 
-use std::thread;
 
 
  
-use mysql::*;
 use actix_web::*;
 use actix_cors::Cors;
 use dotenv::dotenv;
@@ -56,9 +58,9 @@ async fn main() {
             )
             .app_data(app_data.clone())
             .wrap(actix_web::middleware::Logger::default())
-            .service(get_product)
+            // .service(get_product)
             .service(query_product)
-            .service(create_product)
+            // .service(create_product)
     }).bind("127.0.0.1:8080") {
         Ok(s) => s,
         Err(e) => {
