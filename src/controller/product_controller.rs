@@ -1,4 +1,4 @@
-use crate::model::product::Product;
+use crate::models::product::Product;
 use mysql::prelude::*;
 use mysql::*;
 

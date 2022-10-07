@@ -13,30 +13,37 @@ extern crate futures;
 extern crate jsonwebtoken;
 extern crate serde;
 extern crate uuid;
+extern crate r2d2;
+extern crate r2d2_mysql;
 
 mod routes;
-mod model;
+mod models;
 mod controller;
+// mod middleware;
+// mod utils;
+mod config;
 
 use routes::product::{ get_product, query_product, create_product};
+
+use std::thread;
+
+
  
 use mysql::*;
 use actix_web::*;
 use actix_cors::Cors;
-use actix_service::Service;
+use dotenv::dotenv;
+use std::{env};
  
 #[actix_rt::main]
 async fn main() {
-    let url = "mysql://root:Vegeta94@localhost:3306/fisio_check_dev";
-     
-    let pool = match Pool::new(url) {
-        Ok(pool) => pool,
-        Err(e) => {
-            println!("Failed to open DB connection. {:?}", e); return;
-        }
-    };
- 
-    let shared_data = web::Data::new(pool);
+    dotenv().ok();
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL not found.");
+    // let pool = config::db::config_db(&db_url);
+
+    let app_data = web::Data::new(config::db::AppState {
+        pool: config::db::get_pool(&db_url).unwrap(),
+    });
  
     let server = match HttpServer::new(move || {
         App::new()
@@ -46,7 +53,8 @@ async fn main() {
                 .allowed_header(http::header::CONTENT_TYPE)
                 .max_age(3600),
             )
-            .app_data(shared_data.clone())
+            .app_data(app_data.clone())
+            .wrap(actix_web::middleware::Logger::default())
             .service(get_product)
             .service(query_product)
             .service(create_product)
