@@ -47,7 +47,7 @@ pub async fn query_product(query: web::Query<ProductQuery>, data: web::Data<AppS
             line!(),
             err
         )
-    }).and_then(|mut conn: r2d2::PooledConnection<r2d2_mysql::MysqlConnectionManager>| find_product_in_price_range(&mut conn, query.price_from, query.price_to))
+    }).and_then(|mut conn: r2d2::PooledConnection<r2d2_mysql::MysqlConnectionManager>| Ok(find_product_in_price_range(&mut conn, query.price_from, query.price_to)))
     {
         Ok(result_list) => HttpResponse::Ok().json(result_list),
         Err(_) => HttpResponse::InternalServerError().finish(),
