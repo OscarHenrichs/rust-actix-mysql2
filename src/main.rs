@@ -1,3 +1,9 @@
+#[macro_use]
+extern crate actix_web;
+extern crate jsonwebtoken;
+extern crate dotenv;
+extern crate env_logger;
+
 mod routes;
 mod model;
 mod controller;
@@ -5,11 +11,20 @@ mod controller;
 use routes::product::{ get_product, query_product, create_product};
  
 use mysql::*;
-use actix_web::*;
+use actix_cors::Cors;
+use actix_web::{http, App, HttpServer};
+use actix_service::Service;
+use std::default::Default;
+use std::{env, io};
+
  
 #[actix_rt::main]
 async fn main() {
-    let url = "mysql://root:Vegeta94@localhost:3306/fisio_check_dev";
+    dotenv::dotenv().expect("Failed to read .env file");
+    env::set_var("RUST_LOG", "actix_web=debug");
+    env_logger::init();
+
+    let url = "mysql://root:Vegeta94@@localhost:3306/fisio_check_dev";
      
     let pool = match Pool::new(url) {
         Ok(pool) => pool,
@@ -18,11 +33,22 @@ async fn main() {
         }
     };
  
-    let shared_data = web::Data::new(pool);
+    let shared_data = actix_web::web::Data::new(pool);
  
     let server = match HttpServer::new(move || {
         App::new()
+            .wrap(
+                Cors::default() // allowed_origin return access-control-allow-origin: * by default
+                .allowed_origin("http://127.0.0.1:3000")
+                .allowed_origin("http://localhost:3000")
+                .send_wildcard()
+                .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+                .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+                .allowed_header(http::header::CONTENT_TYPE)
+                .max_age(3600),
+            )
             .app_data(shared_data.clone())
+            .wrap(actix_web::middleware::Logger::default())
             .service(get_product)
             .service(query_product)
             .service(create_product)
