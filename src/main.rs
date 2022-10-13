@@ -12,7 +12,7 @@ use routes::product::{ get_product, query_product, create_product};
  
 use mysql::*;
 use actix_cors::Cors;
-use actix_web::{http, App, HttpServer};
+use actix_web::*;
 use actix_service::Service;
 use std::default::Default;
 use std::{env, io};
